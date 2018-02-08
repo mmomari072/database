@@ -167,6 +167,7 @@ do while (run<nrun)                                 !ensures the number of itera
 
 !-------------------------------------------------Calculated keff---------------------------------------------------------      
 
+
        kpath=sum(fbanknew)/n0
        kpathrat=kpath/kpathold
        kpathold=kpath 
