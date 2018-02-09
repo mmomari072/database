@@ -5,14 +5,14 @@ program rod
 
   integer, parameter :: I8 = selected_int_kind(18)
   integer, parameter :: R8 = selected_real_kind(15,307)
-  integer, parameter :: n0 = 100000
-  integer, parameter :: nrun = 100
+  integer, parameter :: n0 = 1000
+  integer, parameter :: nrun = 10
   integer, parameter :: bins= 101
-  real(R8), parameter :: length =100 !4.3932
+  real(R8), parameter :: length =4.3933
   real(R8), parameter :: binwidth=length/(bins-1) 
   real(R8), parameter :: loc0 = 2
   real(R8), parameter :: nubar = 2.4367
-  real(R8), parameter :: error = .00000001
+  real(R8), parameter :: error = .0001
   integer  :: i, absorb, leak
   real(R8) :: total, locn, rn, direction, rx, den, Navg, wght, kinf, L2,D, kpath,kpathold, pos, j
   integer :: bin0, n,run, particle, nleft, coll, inscat, mult
@@ -42,7 +42,7 @@ program rod
     Clength=PI*(L2/(kinf-1))**0.5-2*2.1312*D
     keff=(nubar*sigf)/(siga+D*(PI/(length+2.1312*2*D))**2)
     
-!//////////////////////////////////  Initializes components   //////////////////////////////////////////////////////////  
+!////////////////////////////////////////////   Initializes components   /////////////////////////////////////////////////////  
 
   bin0= loc0/binwidth
   n=n0
@@ -53,12 +53,11 @@ program rod
 
   coll=0
   fbanknew(0:bins-1)=fbank(0:bins-1)
-  xposnew(0:bins-1)=0
   run=0
 
 print *, "kact=", keff
 
-!///////////////////////////////////   The beginning of the successive runs   ////////////////////////////////////////////
+!////////////////////////////////////////  The beginning of the successive runs   ////////////////////////////////////////////
 
 call RN_init_problem( 1234567_I8, 1 )
 do while (run<nrun)                                 !ensures the number of iterations occur
@@ -69,7 +68,7 @@ do while (run<nrun)                                 !ensures the number of itera
       leak= 0; absorb=0
       mult=0; coll=0
       i=maxval(maxloc(fbank))
-      call RN_init_particle( int(i,I8) )
+!      call RN_init_particle( int(i,I8) )
       do while(sum(fbank)>0)
         if (i>bins) then                          !index remornalization
             i=0
@@ -112,7 +111,7 @@ do while (run<nrun)                                 !ensures the number of itera
                     fbank(i)=fbank(i)-1
                     fbanknew(i)=fbanknew(i)-1
                 else if (rn<(sigc+sigf)/sigt) then   !fission
-                    rx=rang()
+                    rx=rang();absorb=absorb+1
                     if (rx<0.0317223) then
                         fbank(i)=fbank(i)-1
                         fbanknew(i)=fbanknew(i)-1
@@ -155,7 +154,7 @@ do while (run<nrun)                                 !ensures the number of itera
                         
                 else                                  !scatter
                     fbanknew(nint(((move+locn)/binwidth)))=fbanknew(nint(((move+locn)/binwidth)))+1
-     !               fbank(nint(((move+locn)/binwidth)))=fbank(nint(((move+locn)/binwidth)))+1 
+                    fbank(nint(((move+locn)/binwidth)))=fbank(nint(((move+locn)/binwidth)))+1 
                     fbank(i)=fbank(i)-1
                     fbanknew(i)=fbanknew(i)-1
                     coll=coll+1 
@@ -171,7 +170,7 @@ do while (run<nrun)                                 !ensures the number of itera
        kpath=sum(fbanknew)/n0
        kpathrat=kpath/kpathold
        kpathold=kpath 
-!print *, kpath
+!print *, sum(fbanknew)
 !----------------------------------------This Renormalizes the fission bank-----------------------------------------------
 fbanknew=nint(fbanknew/kpath)
 
@@ -218,7 +217,7 @@ do while(i<bins)
 end do
 
 !----------------------------------------------------output-------------------------------------------------------------
- print *, "keff=", kpath, "dkeff=",abs(kpath-keff)
+ print *, "keff=", kpath, "dkeff[$]=",abs(kpath-keff)/.0065
  print *, maxloc(xposnew), maxloc(flux)
 
  OPEN(UNIT=12, FILE="rod.txt", ACTION="write", STATUS="replace")
