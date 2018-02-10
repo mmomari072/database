@@ -6,7 +6,7 @@ program rod
   integer, parameter :: I8 = selected_int_kind(18)
   integer, parameter :: R8 = selected_real_kind(15,307)
   integer, parameter :: n0 = 1000
-  integer, parameter :: nrun = 10
+  integer, parameter :: nrun = 250
   integer, parameter :: bins= 101
   real(R8), parameter :: length =4.3933
   real(R8), parameter :: binwidth=length/(bins-1) 
@@ -55,7 +55,7 @@ program rod
   fbanknew(0:bins-1)=fbank(0:bins-1)
   run=0
 
-print *, "kact=", keff
+print *, "kact=", keff, (L2)**.5
 
 !////////////////////////////////////////  The beginning of the successive runs   ////////////////////////////////////////////
 
@@ -76,7 +76,6 @@ do while (run<nrun)                                 !ensures the number of itera
 
         if (fbank(i)<1) then                        !No particle present
             i=i+1
-            
         else                                        !particle exist and moves
             locn=i*binwidth
             move=-log(rang())/sigt;                 !how far the particle moves
@@ -95,11 +94,11 @@ do while (run<nrun)                                 !ensures the number of itera
                 xpos(0:nint(locn/binwidth))=xpos(0:nint(locn/binwidth))+1 
             else
 
-! track the particles movement
+! track the particles movement for flux calculation
                 if (move>0) then
                     xpos(nint(locn/binwidth):nint((locn+move)/binwidth))=xpos(nint(locn/binwidth):nint((locn+move)/binwidth))+1
                 else if (move==0) then
-                    xpos(nint(locn/binwidth))=xpos(nint(locn/binwidth))+1
+                    xpos(nint(locn/binwidth))=xpos(nint(locn/binwidth))
                 else
                     xpos(nint((locn+move)/binwidth):nint(locn/binwidth))=xpos(nint((locn+move)/binwidth):nint(locn/binwidth))+1
                 end if
@@ -166,12 +165,13 @@ do while (run<nrun)                                 !ensures the number of itera
 
 !-------------------------------------------------Calculated keff---------------------------------------------------------      
 
-
        kpath=sum(fbanknew)/n0
        kpathrat=kpath/kpathold
        kpathold=kpath 
 !print *, sum(fbanknew)
+
 !----------------------------------------This Renormalizes the fission bank-----------------------------------------------
+
 fbanknew=nint(fbanknew/kpath)
 
 !Supercritical            
